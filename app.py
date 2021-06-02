@@ -6,8 +6,11 @@ from flask import Flask, render_template, Response
 
 import cv2
 import numpy as np
+import copy
 
 from io import BytesIO #бинарный поток в памяти
+
+pl_processing=1
 
 # Эмулятор камеры
 #import camera driver
@@ -36,12 +39,21 @@ def gen(camera):
         #cv2.waitKey()
         #Алгоритм обработки можно взять выделение контуров, яркостная нормализация, детектирование объектов и т.д.
         #Пороговая обработка
-        im_processing = np.zeros((im.shape[0], im.shape[1]))
-        for j in range(1):
-            for i in range(im.shape[1]):
-                idx = np.where(im[:,i,j]>200)
-                im_processing[idx[0], i] = 255
-
+        if (pl_processing==1):
+            #Изменение четкости
+            kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
+            im = cv2.filter2D(im, -1, kernel)
+            #Преобразование в серый цвет (типа ночь)
+            im_processing = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+            """
+            im_processing = np.zeros((im.shape[0], im.shape[1]))
+            for j in range(1):
+                for i in range(im.shape[1]):
+                    idx = np.where(im[:,i,j]>100)
+                    im_processing[idx[0], i] = 255
+            """
+        else:
+            im_processing = copy.deepcopy(im)
         #Обратное преобразование
         is_success, im_buf_arr = cv2.imencode(".jpg", im_processing)
         f = BytesIO(im_buf_arr)

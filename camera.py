@@ -8,14 +8,33 @@ from base_camera import BaseCamera
 
 import cv2
 pl = 1
+pl_IP_stream = 1 # часы или видео поток с камеры
+pl_net=1 #локальный ресурс или с интернета
 
 if (pl==1):
     im = cv2.imread("test.jpg")
     im = cv2.resize(im, (300, 500))
     font = cv2.FONT_HERSHEY_PLAIN
     color = (0, 0, 255)
-    text = time.strftime("%m/%d  %H:%M:%S") + u" Samara time"
-    cv2.putText(im, text=text, fontFace=font,  org=(150, 150), fontScale=1, color=color, thickness=1)
+    if (pl_IP_stream==1):
+        if (pl_net==0):
+            capture = cv2.VideoCapture('D:\\Фильмы\\New.avi')
+            amount_of_frames = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            time_length = 30.0
+            fps = 25
+            frame_seq = 749
+            frame_no = (frame_seq / (time_length * fps))
+            capture.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+        else:
+            capture = cv2.VideoCapture('http://149.43.156.105/mjpg/video.mjpg')
+
+        ret, frame = capture.read()
+        #cv2.imshow("Capturing", frame)
+        cv2.putText(frame, text=None, fontFace=font, org=(150, 150), fontScale=1, color=color, thickness=1)
+    else:
+        text = time.strftime("%m/%d  %H:%M:%S") + u" Samara time"
+        cv2.putText(im, text=text, fontFace=font,  org=(150, 150), fontScale=1, color=color, thickness=1)
+
     is_success, im_buf_arr = cv2.imencode(".jpg", im)
 
     cv2.waitKey(0)
@@ -57,21 +76,39 @@ class Camera(BaseCamera):
     def frames():
 
         while True:
-            text =time.strftime("%m/%d  %H:%M:%S") +u" Samara time"
+            if (pl_IP_stream == 0):
+                text =time.strftime("%m/%d  %H:%M:%S") +u" Samara time"
+            #capture = cv2.VideoCapture('rtsp://192.168.1.64/1')
+            else:
+                if (pl_net == 0):
+                    time_length = 30.0
+                    fps = 25
+                    frame_seq = 749
+                    frame_no = (frame_seq / (time_length * fps))
+                    capture.set(cv2.CAP_PROP_POS_FRAMES, frame_no)
+
+                ret, frame = capture.read()
             if (pl==1):
                 im = cv2.imread("test.jpg")
                 im = cv2.resize(im, (1000, 500))
                 font = cv2.FONT_HERSHEY_PLAIN
                 color = (0, 0, 255)
-                cv2.putText(im, text=text, fontFace=font, org=(150, 150), fontScale=3, color=color, thickness=3)
-                is_success, im_buf_arr = cv2.imencode(".jpg", im)
+                if (pl_IP_stream == 0):
+                    cv2.putText(im, text=text, fontFace=font, org=(150, 150), fontScale=3, color=color, thickness=3)
+                    is_success, im_buf_arr = cv2.imencode(".jpg", im)
+                else:
+                    cv2.putText(frame, text=None, fontFace=font, org=(150, 150), fontScale=3, color=color, thickness=3)
+                    is_success, im_buf_arr = cv2.imencode(".jpg", frame)
+
                 f = BytesIO(im_buf_arr)
                 byte_im = f.getvalue()
                 #print(byte_im)
                 #im.save(f, 'JPEG')
                 try:
-                    cv2.imwrite("d:\\PYTHON\\Magistracy\\2 семестр\\ПРЗП\\Lab3\\temp\\temp.jpg", im)
-
+                    if (pl_IP_stream == 0):
+                        cv2.imwrite("d:\\PYTHON\\Magistracy\\2 семестр\\ПРЗП\\Lab3\\temp\\temp.jpg", im)
+                    else:
+                        cv2.imwrite("d:\\PYTHON\\Magistracy\\2 семестр\\ПРЗП\\Lab3\\temp\\temp.jpg", frame)
                 except:
 
                     print("Unexpected error:", sys.exc_info()[0])

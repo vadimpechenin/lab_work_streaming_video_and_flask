@@ -10,3 +10,5 @@ class Camera(object):
 
     def get_frame(self):
         return self.frames[int(time()) % 3]
+
+    #Метод yield
